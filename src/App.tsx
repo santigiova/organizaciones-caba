@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { Leaf, Info, Filter, Search, MapPin, Tag, RefreshCw, BarChart2, Heart, CheckCircle2, Users } from 'lucide-react';
+import { Leaf, Filter, Search, MapPin, Tag, RefreshCw, BarChart2, Heart, CheckCircle2, Users } from 'lucide-react';
 
 // --- Supabase Config ---
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
