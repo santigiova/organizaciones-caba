@@ -108,7 +108,6 @@ export default function App() {
     const [loading, setLoading] = useState<boolean>(true);
     const [filtroTema, setFiltroTema] = useState<string>('');
     const [filtroBarrio, setFiltroBarrio] = useState<string>('');
-    const [filtroScoreMin, setFiltroScoreMin] = useState<number>(0);
     const [filtroContacto, setFiltroContacto] = useState<boolean>(false);
 
     const fetchData = React.useCallback(async () => {
@@ -116,9 +115,8 @@ export default function App() {
         let query = supabase.from('organizaciones').select('*');
         if (filtroTema) query = query.contains('temas_principales', [filtroTema]);
         if (filtroBarrio) query = query.ilike('barrio_o_zona', `%${filtroBarrio}%`);
-        if (filtroScoreMin > 0) query = query.gte('confidence_score', filtroScoreMin);
         if (filtroContacto) query = query.not('instagram_url', 'is', null);
-        query = query.order('confidence_score', { ascending: false }).limit(200);
+        query = query.order('nombre_asociacion', { ascending: true }).limit(200);
 
         const { data: result, error } = await query;
         if (error) {
@@ -127,13 +125,12 @@ export default function App() {
             const limpio = (result || []).filter(r =>
                 r.nombre_asociacion &&
                 r.nombre_asociacion.toLowerCase() !== 'null' &&
-                r.nombre_asociacion !== '' &&
-                r.confidence_score > 0
+                r.nombre_asociacion !== ''
             );
             setData(limpio);
         }
         setLoading(false);
-    }, [filtroTema, filtroBarrio, filtroScoreMin, filtroContacto]);
+    }, [filtroTema, filtroBarrio, filtroContacto]);
 
     useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -200,10 +197,7 @@ export default function App() {
                         <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1.5"><MapPin className="w-3 h-3 inline mr-1" />Barrio</label>
                         <input type="text" placeholder="Ej. Caballito, Palermo..." className="bg-slate-50 rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 placeholder:font-normal focus:outline-none focus:ring-2 focus:ring-blue-500 border-none" value={filtroBarrio} onChange={e => setFiltroBarrio(e.target.value)} />
                     </div>
-                    <div className="flex flex-col min-w-[120px]">
-                        <label className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">Score mín.</label>
-                        <input type="number" placeholder="0" className="bg-slate-50 rounded-xl px-3 py-2 text-sm font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 border-none" value={filtroScoreMin} onChange={e => setFiltroScoreMin(Number(e.target.value))} />
-                    </div>
+
                     <label className="flex items-center gap-2 text-xs font-bold text-slate-600 cursor-pointer hover:text-blue-600 transition-colors mt-4">
                         <input type="checkbox" checked={filtroContacto} onChange={e => setFiltroContacto(e.target.checked)} className="rounded text-blue-600 w-4 h-4" />
                         Sólo con Instagram
@@ -236,13 +230,12 @@ export default function App() {
                         <div className="overflow-x-auto">
                             <table className="w-full text-left" style={{ tableLayout: 'fixed' }}>
                                 <colgroup>
+                                    <col style={{ width: '20%' }} />
+                                    <col style={{ width: '26%' }} />
                                     <col style={{ width: '18%' }} />
-                                    <col style={{ width: '22%' }} />
-                                    <col style={{ width: '16%' }} />
-                                    <col style={{ width: '11%' }} />
-                                    <col style={{ width: '7%' }} />
                                     <col style={{ width: '13%' }} />
                                     <col style={{ width: '13%' }} />
+                                    <col style={{ width: '10%' }} />
                                 </colgroup>
                                 <thead>
                                     <tr className="border-b border-slate-100">
@@ -250,7 +243,6 @@ export default function App() {
                                         <th className="px-5 py-4 table-header">Descripción</th>
                                         <th className="px-5 py-4 table-header">Temas</th>
                                         <th className="px-5 py-4 table-header">Barrio</th>
-                                        <th className="px-5 py-4 table-header text-center">Score</th>
                                         <th className="px-5 py-4 table-header">Instagram</th>
                                         <th className="px-5 py-4 table-header">
                                             <div className="flex items-center gap-1"><Users className="w-3 h-3" /> Followers</div>
@@ -292,17 +284,6 @@ export default function App() {
                                             <td className="px-5 py-4 align-top">
                                                 <div className="text-xs font-semibold text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg inline-block leading-relaxed break-words w-full">
                                                     {org.barrio_o_zona || '—'}
-                                                </div>
-                                            </td>
-
-                                            {/* Score */}
-                                            <td className="px-5 py-4 align-top text-center">
-                                                <div className={`text-xl font-black italic ${org.confidence_score >= 80 ? 'text-emerald-500' : org.confidence_score >= 60 ? 'text-amber-500' : 'text-slate-400'}`}>
-                                                    {org.confidence_score}
-                                                </div>
-                                                <div className="w-full bg-slate-100 h-1 rounded-full overflow-hidden mt-1 mx-auto">
-                                                    <div className={`h-full rounded-full ${org.confidence_score >= 80 ? 'bg-emerald-400' : org.confidence_score >= 60 ? 'bg-amber-400' : 'bg-slate-300'}`}
-                                                        style={{ width: `${org.confidence_score}%` }} />
                                                 </div>
                                             </td>
 
